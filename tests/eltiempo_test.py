@@ -2,4 +2,6 @@ from eltiempoes import ElTiempoEs
 
 tiempo = ElTiempoEs()
 
-estaciones = tiempo.search_location(location_name="Cordoba")
+data = tiempo.get_detallada_prediction(estacion_name="Córdoba")
+
+print(data)

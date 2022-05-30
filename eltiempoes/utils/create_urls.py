@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+
 from typing import Literal
-from ..constants import *
+
+from eltiempoes.constants import MAIN_URL, DIAS_FLAG, DETALLADA_FLAG, POR_HORA_FLAG, SEARCH_URL
 
 # https://www.eltiempo.es/api/weatherapi/search?q=cordoba&lim=100&country=es
 # https://www.eltiempo.es/cordoba.html
@@ -10,16 +13,16 @@ from ..constants import *
 
 
 def create_prediction_url(
-    estacion: str, type: Literal["dias", "detallada", "por_hora"] = "dias"
+    estacion: str, prediction_type: Literal["dias", "detallada", "por_hora"] = "dias"
 ) -> str:
-    if type == "detallada":
+    if prediction_type == "detallada":
         return f"{MAIN_URL}{estacion}.html?v={DETALLADA_FLAG}"
-    elif type == "por_hora":
+    elif prediction_type == "por_hora":
         return f"{MAIN_URL}{estacion}.html?v={POR_HORA_FLAG}"
-    elif type == "dias":
+    elif prediction_type == "dias":
         return f"{MAIN_URL}{estacion}.html{DIAS_FLAG}"
     else:
-        raise Exception(f"type '{type}' is not supported.await")
+        raise Exception(f"type '{prediction_type}' is not supported.await")
 
 
 def create_search_url(name: str, lim: int = 100, country: str = "es") -> str:
