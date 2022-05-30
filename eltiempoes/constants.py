@@ -1,0 +1,5 @@
+MAIN_URL = "https://www.eltiempo.es/"
+DETALLADA_FLAG = "detallada~ROW_NUMBER_5~~TEMP_UNIT_c~~WIND_UNIT_kmh~"
+POR_HORA_FLAG = "por_hora~ROW_NUMBER_6~~TEMP_UNIT_c~~WIND_UNIT_kmh~"
+SEARCH_URL = "https://www.eltiempo.es/api/weatherapi/search"
+DIAS_FLAG = "~ROW_NUMBER_5~~TEMP_UNIT_c~~WIND_UNIT_kmh~"
