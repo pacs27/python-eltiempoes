@@ -1,26 +1,74 @@
 import json
 from unidecode import unidecode
-from typing import List
-
+from typing import Dict, Tuple, List, Union
 from requests import get
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, ResultSet
 
-from .constants import *
 from .utils.create_urls import create_prediction_url, create_search_url
+from .web_scraping import (
+    get_precipitation_probabilities,
+    get_cloud_percentages,
+    get_ultraviolet_radiations,
+    get_detallada_dates,
+    get_daily_dates,
+    get_max_temperatures,
+    get_min_temperatures,
+    get_precipitations,
+    get_winds_speed,
+    get_sunrise_hours,
+    get_sunset_hours,
+)
 
 
 class ElTiempoEs:
     def __init__(self):
         pass
 
-    def search_location(self, location_name: str, limit: int = 100):
+    def search_location(
+        self, location_name: str, limit: int = 100
+    ) -> List[Dict[str, Union[str, int, float]]]:
+        """Search for all stations of the given name
+
+        Args:
+            location_name (str): Any name of a location. For example: "Córdoba"
+            limit (int, optional): Maximum number of results returned. Defaults to 100.
+
+        Returns:
+            List[Dict[str, Union[str, int, float]]]: Results with stations data
+        """
         search_url = create_search_url(name=location_name, lim=limit)
         response_data = get(search_url)
         response_text_data = response_data.text
         response_text_data_in_json = json.loads(response_text_data)
         return response_text_data_in_json
 
-    def get_daily_prediction(self, estacion_name: str):
+    def _get_daily_prediction(
+        self, estacion_name: str
+    ) -> Tuple[
+        List[Tuple[int, str]],
+        List[int],
+        List[int],
+        List[float],
+        List[int],
+        List[str],
+        List[str],
+    ]:
+        """Gets the daily forecast over a 14-day period.
+
+        Args:
+            estacion_name (str): Station name (must be the same as the urlize fiel in the station json data)
+
+        Returns:
+                Tuple[
+                    dates: List[Tuple[int, str]]]
+                    max_temperature: List[int]
+                    min_temperature: List[int]
+                    precipitation: List[float]
+                    wind_speed: List[int]
+                    sunrise: List[str]
+                    sunset: List[str]
+                ]
+        """
         estacion_name = unidecode(estacion_name)
         estacion_name_lowercase = estacion_name.lower()
 
@@ -30,14 +78,16 @@ class ElTiempoEs:
         response_data = get(daily_url)
         response_data_text = response_data.text
         soup = BeautifulSoup(response_data_text, "html.parser")
-        dates = get_dates_daily(soup)
-        max_temperature = get_max_temperature(soup)
-        min_temperature = get_min_temperature(soup)
-        precipitation = get_precipitation(soup)
-        wind_speed = get_wind_speed(soup)
-        sunrise = get_sunrise(soup)
-        sunset = get_sunset(soup)
+
+        dates = get_daily_dates(soup)
+        max_temperature = get_max_temperatures(soup)
+        min_temperature = get_min_temperatures(soup)
+        precipitation = get_precipitations(soup)
+        wind_speed = get_winds_speed(soup)
+        sunrise = get_sunrise_hours(soup)
+        sunset = get_sunset_hours(soup)
         return (
+            dates,
             max_temperature,
             min_temperature,
             precipitation,
@@ -45,8 +95,69 @@ class ElTiempoEs:
             sunrise,
             sunset,
         )
-        
-    def get_detallada_prediction(self, estacion_name: str):
+
+    def _get_daily_prediction_json(
+        self, estacion_name: str
+    ) -> List[Dict[str, object]]:
+        """Gets the daily forecast over a 14-day period in json format.
+
+        Args:
+            estacion_name (str): Station name (must be the same as the urlize fiel in the station json data)
+
+        Returns:
+             List[
+                 Dict[
+                    "date": Tuple[int, str]]
+                    "max_temperature": int; degrees Celsius
+                    "min_temperature": int; degrees Celsius
+                    "precipitation": float;  mm
+                    "wind_speed": int;  km/h
+                    "sunrise_hour": str
+                    "sunset_hour": str
+                ]
+            ]
+        """
+        (
+            dates,
+            max_temperature,
+            min_temperature,
+            precipitation,
+            wind_speed,
+            sunrise,
+            sunset,
+        ) = self._get_daily_prediction(estacion_name=estacion_name)
+
+        daily_items_json = []
+        for index, item in enumerate(dates):
+            item_dict = {
+                "date": item,
+                "max_temperature": max_temperature[index],
+                "min_temperature": min_temperature[index],
+                "precipitation": precipitation[index],
+                "wind_speed": wind_speed[index],
+                "sunrise": sunrise[index],
+                "sunset": sunset[index],
+            }
+            daily_items_json.append(item_dict)
+
+        return daily_items_json
+
+    def _get_detallada_prediction(
+        self, estacion_name: str
+    ) -> Tuple[List[Tuple[int, str]], List[float], List[float], List[str]]:
+        """Gets the detallada daily forecast over a 14-day period.
+
+        Args:
+            estacion_name (str): Station name (must be the same as the urlize fiel in the station json data)
+
+        Returns:
+                Tuple[
+                    dates: List[Tuple[int, str]]]
+                    precipitation_probability: List[float] in percentage of one
+                    cloud_percentage: List[float] in percentage of one
+                    ultraviolet_radiation: List[str]
+                ]
+        """
         estacion_name = unidecode(estacion_name)
         estacion_name_lowercase = estacion_name.lower()
 
@@ -56,104 +167,109 @@ class ElTiempoEs:
         response_data = get(detallada_url)
         response_data_text = response_data.text
         soup = BeautifulSoup(response_data_text, "html.parser")
-        dates = get_dates(soup)
-        precipitation_probability = get_precipitation_probability(soup)
-        cloud_percentage = get_cloud_percentage(soup)
-        ultraviolet_radiation = get_ultraviolet_radiation(soup)
 
-        return dates
-
-
-def get_precipitation_probability(html_text: BeautifulSoup) -> List[int]:
-    precipitation_probability_soup = html_text.findAll(attrs={"data-expand-tablechild-item":True})
-    precipitation_probability = []
-    for precipitation_probability_item in precipitation_probability_soup:
-        precipitation_probability.append(precipitation_probability_item.find_all('span')[0].text.split()[0])
-    return precipitation_probability
-
-def get_cloud_percentage(html_text: BeautifulSoup) -> List[int]:
-    cloud_percentage_soup = html_text.findAll(attrs={"data-expand-tablechild-item":True})
-    cloud_percentage = []
-    for cloud_percentage_item in cloud_percentage_soup:
-        cloud_percentage.append(cloud_percentage_item.find_all('span')[1].text.split()[0])
-    return cloud_percentage
-
-def get_ultraviolet_radiation(html_text: BeautifulSoup) -> List[int]:
-    ultraviolet_radiation_soup = html_text.findAll(attrs={"data-expand-tablechild-item":True})
-    ultraviolet_radiation = []
-    for ultraviolet_radiation_item in ultraviolet_radiation_soup:
-        ultraviolet_radiation.append(ultraviolet_radiation_item.find_all('span')[2].text)
-    return ultraviolet_radiation
-
-def get_dates(html_text: BeautifulSoup) -> List[int]:
-    date_soup = html_text.findAll(
-        "span", class_="m_table_weather_day_day"
-    )
-    date = []
-    for date_item in date_soup:
-        date.append((date_item.text.split()[0],date_item.text.split()[1]))
-    return date
-
-
-def get_max_temperature(html_text: BeautifulSoup) -> List[int]:
-    max_temperature_soup = html_text.findAll(
-        "span", class_="m_table_weather_day_max_temp"
-    )
-    max_temperature = []
-    for max_temperature_item in max_temperature_soup:
-        max_temperature.append(int(max_temperature_item.span["data-temp"]))
-    return max_temperature
-
-
-def get_min_temperature(html_text: BeautifulSoup) -> List[int]:
-    min_temperature_soup = html_text.findAll(
-        "span", class_="m_table_weather_day_min_temp"
-    )
-    min_temperature = []
-    for min_temperature_item in min_temperature_soup:
-        min_temperature.append(int(min_temperature_item.span["data-temp"]))
-    return min_temperature
-
-
-def get_precipitation(html_text: BeautifulSoup) -> List[float]:
-    precipitation_soup = html_text.findAll(
-        "div", class_="m_table_weather_day_child m_table_weather_day_rain"
-    )
-    precipitation = []
-    for precipitation_item in precipitation_soup:
-        precipitation.append(
-            float(precipitation_item.findAll("span")[1].text.split()[0])
+        dates = get_detallada_dates(soup)
+        precipitation_probability = get_precipitation_probabilities(soup)
+        cloud_percentage = get_cloud_percentages(soup)
+        ultraviolet_radiation = get_ultraviolet_radiations(soup)
+        return (
+            dates,
+            precipitation_probability,
+            cloud_percentage,
+            ultraviolet_radiation,
         )
-    return precipitation
 
+    def _get_detallada_prediction_json(
+        self, estacion_name: str
+    ) -> List[Dict[str, object]]:
+        """Gets the detallada daily forecast over a 14-day period in json format.
 
-def get_wind_speed(html_text: BeautifulSoup) -> List[int]:
-    wind_speed_soup = html_text.findAll(
-        "div", class_="m_table_weather_day_child m_table_weather_day_wind"
-    )
-    wind_speed = []
-    for wind_speed_item in wind_speed_soup:
-        wind_speed.append(
-            int(wind_speed_item.findAll("span")[1].find("span").text.split()[0])
-        )
-    return wind_speed
+        Args:
+            estacion_name (str): Station name (must be the same as the urlize fiel in the station json data)
 
+        Returns:
+             List[
+                 Dict[
+                    "date": Tuple[int, str]]
+                    "max_temperature": int; degrees Celsius
+                    "min_temperature": int; degrees Celsius
+                    "precipitation": float;  mm
+                    "wind_speed": int;  km/h
+                    "sunrise_hour": sunride hour in the format (%hh/%mm)
+                    "sunset_hour": sinset hour in the format (%hh/%mm)
+                    "precipitation_probability": float; in percentage of one
+                    "cloud_percentage": float; in percentage of one
+                    "ultraviolet_radiation": str; List of texts with differents radiation types, like ('Muy alta' ...)
+                ]
+            ]
+        """
+        (
+            dates,
+            precipitation_probability,
+            cloud_percentage,
+            ultraviolet_radiation,
+        ) = self._get_detallada_prediction(estacion_name=estacion_name)
 
-def get_sunrise(html_text: BeautifulSoup) -> List[int]:
-    sunrise_soup = html_text.findAll(
-        "div", class_="m_table_weather_day_child m_table_weather_day_dawn"
-    )
-    sunrise = []
-    for sunrise_item in sunrise_soup:
-        sunrise.append(sunrise_item.findAll("span")[1].text.split()[0])
-    return sunrise
+        detallada_items_json = []
+        for index, item in enumerate(dates):
+            item_dict = {
+                "date": item,
+                "precipitation_probability": precipitation_probability[index],
+                "cloud_percentage": cloud_percentage[index],
+                "ultraviolet_radiation": ultraviolet_radiation[index],
+            }
+            detallada_items_json.append(item_dict)
 
+        return detallada_items_json
 
-def get_sunset(html_text: BeautifulSoup) -> List[int]:
-    sunset_soup = html_text.findAll(
-        "div", class_="m_table_weather_day_child m_table_weather_day_nightfall"
-    )
-    sunset = []
-    for sunset_item in sunset_soup:
-        sunset.append(sunset_item.findAll("span")[1].text.split()[0])
-    return sunset
+    def get_all_data_in_json(
+        self, estacion_name: str
+    ) -> List[Dict[str, object]]:
+        """Gets all daily forecast data over a 14-day period in json format.
+
+        Args:
+            estacion_name (str): Station name (must be the same as the urlize fiel in the station json data)
+
+        Returns:
+             List[
+                 Dict[
+                    "date": Tuple[int, str]]
+                    "precipitation_probability": float in percentage of one
+                    "cloud_percentage": float in percentage of one
+                    "ultraviolet_radiation": str
+                ]
+            ]
+        """
+        (
+            dates_detallada,
+            precipitation_probability,
+            cloud_percentage,
+            ultraviolet_radiation,
+        ) = self._get_detallada_prediction(estacion_name=estacion_name)
+
+        (
+            dates_daily,
+            max_temperature,
+            min_temperature,
+            precipitation,
+            wind_speed,
+            sunrise,
+            sunset,
+        ) = self._get_daily_prediction(estacion_name=estacion_name)
+        all_json_items = []
+        for index, item in enumerate(dates_daily):
+            item_dict = {
+                "date": item,
+                "max_temperature": max_temperature[index],
+                "min_temperature": min_temperature[index],
+                "precipitation": precipitation[index],
+                "wind_speed": wind_speed[index],
+                "sunrise": sunrise[index],
+                "sunset": sunset[index],
+                "precipitation_probability": precipitation_probability[index],
+                "cloud_percentage": cloud_percentage[index],
+                "ultraviolet_radiation": ultraviolet_radiation[index],
+            }
+            all_json_items.append(item_dict)
+
+        return all_json_items
