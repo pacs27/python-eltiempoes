@@ -1,9 +1,11 @@
 name: Test library with unittest.
 on:
   push:
-    # Sequence of patterns matched against refs/tags
-    tags:
-      - 't*' # Push events to matching v*, i.e. v1.0, v20.15.10
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 jobs:
   build:
     runs-on: ${{ matrix.os }}
