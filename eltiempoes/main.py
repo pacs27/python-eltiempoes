@@ -96,9 +96,7 @@ class ElTiempoEs:
             sunset,
         )
 
-    def _get_daily_prediction_json(
-        self, estacion_name: str
-    ) -> List[Dict[str, object]]:
+    def _get_daily_prediction_json(self, estacion_name: str) -> List[Dict[str, object]]:
         """Gets the daily forecast over a 14-day period in json format.
 
         Args:
@@ -222,9 +220,7 @@ class ElTiempoEs:
 
         return detallada_items_json
 
-    def get_all_data_in_json(
-        self, estacion_name: str
-    ) -> List[Dict[str, object]]:
+    def get_all_data_in_json(self, estacion_name: str) -> List[Dict[str, object]]:
         """Gets all daily forecast data over a 14-day period in json format.
 
         Args:
@@ -257,6 +253,9 @@ class ElTiempoEs:
             sunset,
         ) = self._get_daily_prediction(estacion_name=estacion_name)
         all_json_items = []
+        if len(precipitation_probability) < 14:
+            # TODO: This sometimes happens. Have a look
+            raise Exception("It is not possible to connect with eltiempo.es/detallada.")
         for index, item in enumerate(dates_daily):
             item_dict = {
                 "date": item,
