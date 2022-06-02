@@ -189,15 +189,9 @@ class ElTiempoEs:
              List[
                  Dict[
                     "date": Tuple[int, str]]
-                    "max_temperature": int; degrees Celsius
-                    "min_temperature": int; degrees Celsius
-                    "precipitation": float;  mm
-                    "wind_speed": int;  km/h
-                    "sunrise_hour": sunride hour in the format (%hh/%mm)
-                    "sunset_hour": sinset hour in the format (%hh/%mm)
-                    "precipitation_probability": float; in percentage of one
-                    "cloud_percentage": float; in percentage of one
-                    "ultraviolet_radiation": str; List of texts with differents radiation types, like ('Muy alta' ...)
+                    "precipitation_probability": float in percentage of one
+                    "cloud_percentage": float in percentage of one
+                    "ultraviolet_radiation": str
                 ]
             ]
         """
@@ -230,9 +224,16 @@ class ElTiempoEs:
              List[
                  Dict[
                     "date": Tuple[int, str]]
-                    "precipitation_probability": float in percentage of one
-                    "cloud_percentage": float in percentage of one
-                    "ultraviolet_radiation": str
+                    "max_temperature": int; degrees Celsius
+                    "min_temperature": int; degrees Celsius
+                    "precipitation": float;  mm
+                    "wind_speed": int;  km/h
+                    "sunrise_hour": sunride hour in the format (%hh/%mm)
+                    "sunset_hour": sinset hour in the format (%hh/%mm)
+                    "precipitation_probability": float; in percentage of one
+                    "cloud_percentage": float; in percentage of one
+                    "ultraviolet_radiation": str; List of texts with differents radiation types, like ('Muy alta' ...)
+            }
                 ]
             ]
         """
