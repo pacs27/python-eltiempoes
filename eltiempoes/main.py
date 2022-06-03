@@ -159,10 +159,20 @@ class ElTiempoEs:
         estacion_name = unidecode(estacion_name)
         estacion_name_lowercase = estacion_name.lower()
 
-        detallada_url = create_prediction_url(
-            estacion=estacion_name_lowercase, prediction_type="detallada"
+        long_detallada_url = create_prediction_url(
+            estacion=estacion_name_lowercase, prediction_type="long_detallada"
         )
-        response_data = get(detallada_url)
+        response_data = get(long_detallada_url)
+
+        if response_data.status_code == 404:
+            # If the page returns 404 it is necessary to call the detailed URL
+            # TODO: Check this solution
+            detallada_url = create_prediction_url(
+                estacion=estacion_name_lowercase, prediction_type="detallada"
+            )
+            get(detallada_url)
+            response_data = get(long_detallada_url)
+
         response_data_text = response_data.text
         soup = BeautifulSoup(response_data_text, "html.parser")
 
