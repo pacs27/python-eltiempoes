@@ -6,26 +6,26 @@ import unittest
 from eltiempoes import ElTiempoEs
 
 
-class TestEstaciones(unittest.TestCase):
+class Teststations(unittest.TestCase):
     """
     Class to test the irrigation entity
     """
 
     tiempo = ElTiempoEs()
-    estaciones = tiempo.search_location(location_name="Cordoba")
+    stations = tiempo.search_location(location_name="Cordoba")
 
-    def test_search_num_estaciones(self):
+    def test_search_num_stations(self):
 
-        estaciones_len_returned = len(self.estaciones)
-        estaciones_len_expected = 54
+        stations_len_returned = len(self.stations)
+        stations_len_expected = 54
 
-        self.assertEqual(estaciones_len_expected, estaciones_len_returned)
+        self.assertEqual(stations_len_expected, stations_len_returned)
 
-    def test_single_estacion(self):
+    def test_single_station(self):
         name_returned = None
-        for estacion in self.estaciones:
-            if estacion['id'] == '102519240':
-                name_returned = estacion["name"]
+        for station in self.stations:
+            if station['id'] == '102519240':
+                name_returned = station["name"]
 
         name_expected = 'Córdoba'
         self.assertEqual(name_expected, name_returned)

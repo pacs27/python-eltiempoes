@@ -14,16 +14,16 @@ from eltiempoes.constants import MAIN_URL, DIAS_FLAG, DETALLADA_FLAG, LONG_DETAL
 
 
 def create_prediction_url(
-    estacion: str, prediction_type: Literal["dias", "detallada", "long_detallada", "por_hora"] = "dias"
+    station: str, prediction_type: Literal["dias", "detallada", "long_detallada", "por_hora"] = "dias"
 ) -> str:
     if prediction_type == "detallada":
-        return f"{MAIN_URL}{estacion}.html?v={DETALLADA_FLAG}"
+        return f"{MAIN_URL}{station}.html?v={DETALLADA_FLAG}"
     elif prediction_type == "long_detallada":
-        return f"{MAIN_URL}{estacion}.html?v={LONG_DETALLADA_FLAG}"
+        return f"{MAIN_URL}{station}.html?v={LONG_DETALLADA_FLAG}"
     elif prediction_type == "por_hora":
-        return f"{MAIN_URL}{estacion}.html?v={POR_HORA_FLAG}"
+        return f"{MAIN_URL}{station}.html?v={POR_HORA_FLAG}"
     elif prediction_type == "dias":
-        return f"{MAIN_URL}{estacion}.html{DIAS_FLAG}"
+        return f"{MAIN_URL}{station}.html{DIAS_FLAG}"
     else:
         raise Exception(f"type '{prediction_type}' is not supported.await")
 

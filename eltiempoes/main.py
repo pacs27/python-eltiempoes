@@ -43,7 +43,7 @@ class ElTiempoEs:
         return response_text_data_in_json
 
     def _get_daily_prediction(
-        self, estacion_name: str
+        self, station_name: str
     ) -> Tuple[
         List[Tuple[int, str]],
         List[int],
@@ -56,7 +56,7 @@ class ElTiempoEs:
         """Gets the daily forecast over a 14-day period.
 
         Args:
-            estacion_name (str): Station name (must be the same as the urlize fiel in the station json data)
+            station_name (str): Station name (must be the same as the urlize fiel in the station json data)
 
         Returns:
                 Tuple[
@@ -69,11 +69,11 @@ class ElTiempoEs:
                     sunset: List[str]
                 ]
         """
-        estacion_name = unidecode(estacion_name)
-        estacion_name_lowercase = estacion_name.lower()
+        station_name = unidecode(station_name)
+        station_name_lowercase = station_name.lower()
 
         daily_url = create_prediction_url(
-            estacion=estacion_name_lowercase, prediction_type="dias"
+            station=station_name_lowercase, prediction_type="dias"
         )
         response_data = get(daily_url)
         response_data_text = response_data.text
@@ -96,11 +96,11 @@ class ElTiempoEs:
             sunset,
         )
 
-    def _get_daily_prediction_json(self, estacion_name: str) -> List[Dict[str, object]]:
+    def _get_daily_prediction_json(self, station_name: str) -> List[Dict[str, object]]:
         """Gets the daily forecast over a 14-day period in json format.
 
         Args:
-            estacion_name (str): Station name (must be the same as the urlize fiel in the station json data)
+            station_name (str): Station name (must be the same as the urlize fiel in the station json data)
 
         Returns:
              List[
@@ -123,7 +123,7 @@ class ElTiempoEs:
             wind_speed,
             sunrise,
             sunset,
-        ) = self._get_daily_prediction(estacion_name=estacion_name)
+        ) = self._get_daily_prediction(station_name=station_name)
 
         daily_items_json = []
         for index, item in enumerate(dates):
@@ -141,12 +141,12 @@ class ElTiempoEs:
         return daily_items_json
 
     def _get_detallada_prediction(
-        self, estacion_name: str
+        self, station_name: str
     ) -> Tuple[List[Tuple[int, str]], List[float], List[float], List[str]]:
         """Gets the detallada daily forecast over a 14-day period.
 
         Args:
-            estacion_name (str): Station name (must be the same as the urlize fiel in the station json data)
+            station_name (str): Station name (must be the same as the urlize fiel in the station json data)
 
         Returns:
                 Tuple[
@@ -156,11 +156,11 @@ class ElTiempoEs:
                     ultraviolet_radiation: List[str]
                 ]
         """
-        estacion_name = unidecode(estacion_name)
-        estacion_name_lowercase = estacion_name.lower()
+        station_name = unidecode(station_name)
+        station_name_lowercase = station_name.lower()
 
         long_detallada_url = create_prediction_url(
-            estacion=estacion_name_lowercase, prediction_type="long_detallada"
+            station=station_name_lowercase, prediction_type="long_detallada"
         )
         response_data = get(long_detallada_url)
 
@@ -168,7 +168,7 @@ class ElTiempoEs:
             # If the page returns 404 it is necessary to call the detailed URL
             # TODO: Check this solution
             detallada_url = create_prediction_url(
-                estacion=estacion_name_lowercase, prediction_type="detallada"
+                station=station_name_lowercase, prediction_type="detallada"
             )
             get(detallada_url)
             response_data = get(long_detallada_url)
@@ -188,12 +188,12 @@ class ElTiempoEs:
         )
 
     def _get_detallada_prediction_json(
-        self, estacion_name: str
+        self, station_name: str
     ) -> List[Dict[str, object]]:
         """Gets the detallada daily forecast over a 14-day period in json format.
 
         Args:
-            estacion_name (str): Station name (must be the same as the urlize fiel in the station json data)
+            station_name (str): Station name (must be the same as the urlize fiel in the station json data)
 
         Returns:
              List[
@@ -210,7 +210,7 @@ class ElTiempoEs:
             precipitation_probability,
             cloud_percentage,
             ultraviolet_radiation,
-        ) = self._get_detallada_prediction(estacion_name=estacion_name)
+        ) = self._get_detallada_prediction(station_name=station_name)
 
         detallada_items_json = []
         for index, item in enumerate(dates):
@@ -224,11 +224,11 @@ class ElTiempoEs:
 
         return detallada_items_json
 
-    def get_all_data_in_json(self, estacion_name: str) -> List[Dict[str, object]]:
+    def get_all_data_in_json(self, station_name: str) -> List[Dict[str, object]]:
         """Gets all daily forecast data over a 14-day period in json format.
 
         Args:
-            estacion_name (str): Station name (must be the same as the urlize fiel in the station json data)
+            station_name (str): Station name (must be the same as the urlize fiel in the station json data)
 
         Returns:
              List[
@@ -252,7 +252,7 @@ class ElTiempoEs:
             precipitation_probability,
             cloud_percentage,
             ultraviolet_radiation,
-        ) = self._get_detallada_prediction(estacion_name=estacion_name)
+        ) = self._get_detallada_prediction(station_name=station_name)
 
         (
             dates_daily,
@@ -262,7 +262,7 @@ class ElTiempoEs:
             wind_speed,
             sunrise,
             sunset,
-        ) = self._get_daily_prediction(estacion_name=estacion_name)
+        ) = self._get_daily_prediction(station_name=station_name)
         all_json_items = []
         if len(precipitation_probability) < 14:
             # TODO: This sometimes happens. Have a look

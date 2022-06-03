@@ -12,7 +12,7 @@ class TestElTiempoClass(unittest.TestCase):
     """
 
     tiempo = ElTiempoEs()
-    all_json_data = tiempo.get_all_data_in_json(estacion_name="cordoba")
+    all_json_data = tiempo.get_all_data_in_json(station_name="cordoba")
 
     def test_search_num_days(self):
 
